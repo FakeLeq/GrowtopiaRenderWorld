@@ -1,0 +1,1 @@
+Render Growtopia's world
