@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsc && node dist/index"
+    "dev": "tsc && node dist/index",
+    "test": "tsc && node dist/test/index" 
   },
   "author": "leqend",
   "license": "MIT",
