@@ -1,6 +1,5 @@
 Render Growtopia's world
 
-Example World
-> World Name: SIMPLEGEIGER
+![img](https://raw.githubusercontent.com/FakeLeq/GrowtopiaRenderWorld/main/img/time.png)
 
-![img](https://raw.githubusercontent.com/FakeLeq/GrowtopiaRenderWorld/main/img/SIMPLEGEIGER.png)
+![img](https://raw.githubusercontent.com/FakeLeq/GrowtopiaRenderWorld/main/img/EXAMPLE2.png)
