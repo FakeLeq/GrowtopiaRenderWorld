@@ -7,3 +7,9 @@ arr[210] = 31; arr[214] = 3; arr[216] = 37; arr[218] = 26; arr[219] = 22; arr[22
 arr[255] = 0; arr[0] = 12;
 
 export const arr2 = [12, 11, 15, 8, 14, 7, 13, 2, 10, 9, 6, 4, 5, 3, 1, 0];
+
+export interface TileExtraRender {
+    image: any,
+    x: number,
+    y: number
+}

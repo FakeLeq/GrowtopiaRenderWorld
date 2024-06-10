@@ -1,16 +1,18 @@
-import { readFileSync } from "fs";
+import { readFileSync, readdir, readdirSync } from "fs";
 import { LoadItems } from "../Items/LoadItems";
 import { ParseData } from "../utils/parseData";
 import { loadImage } from "canvas";
 import { Weather } from "../Items/ItemInfo/Weather";
+import { TileExtraRender } from "../utils/Utils";
 
 export class setUpRender {
-    public LoadItems?: LoadItems;
+    public LoadItems: LoadItems;
 
-    public fgTexture?: Map<number, any>;
-    public bgTexture?: Map<number, any>;
-    public dropTexture?: Map<number, any>;
-    public weathers?: Map<number, any>;
+    public fgTexture: Map<number, any>;
+    public bgTexture: Map<number, any>;
+    public dropTexture: Map<number, any>;
+    public weathers: Map<number, any>;
+    public TileExtraItems: Map<number, TileExtraRender>
 
     public fgUsed?: {};
     public bgUsed?: {};
@@ -23,12 +25,14 @@ export class setUpRender {
         this.bgTexture = new Map();
         this.dropTexture = new Map();
         this.weathers = new Map();
+        this.TileExtraItems = new Map();
     }
 
     public async LoadTextures(parsedWorld: ParseData) {
         const fg = parsedWorld.BlockInfo!.reduce((data: any, { fgID: key }) => (data[key!] = (data[key!] || 0) + 1, data), {})
         const bg = parsedWorld.BlockInfo!.reduce((data: any, { bgID: key }) => (data[key!] = (data[key!] || 0) + 1, data), {})
         const drops = parsedWorld.DroppedItem!.reduce((data: any, { itemID: key }) => (data[key!] = (data[key!] || 0) + 1, data), {})
+        const tileExtraItems = parsedWorld.TileExtraItems?.filter((val, i) => parsedWorld.TileExtraItems?.indexOf(val) == i);
 
         this.loadWeathers();
 
@@ -45,24 +49,27 @@ export class setUpRender {
         Object.entries(bg).forEach(async (x) => {
             this.bgTexture?.set(Number(x[0]), await loadImage("assets/sprites/" + this.LoadItems?.findWithID(Number(x[0])).item_texture?.replace(".rttex", ".png")))
         });
+
+        for(const tItems of tileExtraItems!) {
+            const i_item = this.LoadItems.findWithID(tItems);
+
+            this.TileExtraItems.set(Number(tItems), {
+                image: await loadImage("assets/sprites/" + i_item.item_texture?.replace(".rttex", ".png")),
+                x: i_item.textureX!,
+                y: i_item.textureY!
+            });
+        }
         
         this.fgUsed = fg;
         this.bgUsed = bg;
     }
 
     private async loadWeathers() {
-        this.weathers?.set(Weather.SUNNY, await loadImage("assets/weathers/Sunny.png"));
+        const dirFiles = readdirSync("assets/weathers")
+
+        this.weathers.set(Weather.DEFAULT, await loadImage("assets/weathers/4.png"));
+        for(const weathers of dirFiles) {
+            this.weathers.set(Number(weathers.replace(".png", "")), await loadImage("assets/weathers/" + weathers));
+        }
     }
 }
-
-/**
- * for(let [key, value] of Object.entries(fg)) {
-            if(Number(key) == 0) return;
-            this.fgTexture?.set(Number(key), await loadImage(readFileSync("assets/sprites/" + this.LoadItems?.findWithID(Number(key)).item_texture?.replace(".rttex", ".png"))))
-        }
-
-        for(let [key, value] of Object.entries(bg)) {
-            if(Number(key) == 0) return;
-            this.bgTexture?.set(Number(key), await loadImage(readFileSync("assets/sprites/" + this.LoadItems?.findWithID(Number(key)).item_texture?.replace(".rttex", ".png"))))
-        }
- */

@@ -3,6 +3,7 @@ export interface ParseData {
     BlockInfo?: BlockInfo[];
 
     DroppedItem?: DroppedItem[];
+    TileExtraItems?: number[] // for rendering (custom)
 }
 
 interface WorldInfo {

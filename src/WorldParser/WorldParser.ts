@@ -2,13 +2,15 @@ import { BlockInfo, DroppedItem, ParseData } from "../utils/parseData";
 import { TileExtra } from "../utils/iTileExtra";
 import { TileFlags } from "../utils/cFlags";
 import { ItemInfo } from "../Items/ItemInfo/Items";
+import { writeFileSync } from "fs";
 
 export class WorldParser {
   public pos = 0;
   private data: ParseData = {
     worldInfo: {},
     BlockInfo: [],
-    DroppedItem: []
+    DroppedItem: [],
+    TileExtraItems: []
   };
 
   constructor(public world: Buffer) {};
@@ -101,7 +103,7 @@ export class WorldParser {
 
     this.pos += 5;
 
-    for(let i = 0; i < this.data.worldInfo!.tileCount; i++) {
+    for(let i = 0; i < this.data.worldInfo.tileCount; i++) {
       let _block = {} as BlockInfo;
 
       _block.x = i % this.data.worldInfo.width;
@@ -112,9 +114,9 @@ export class WorldParser {
 
       _block.parent_block_index = this.read16();
       _block.flags = this.read8();
-      this.pos++; // TODO
+      this.pos++
 
-      if(_block.flags == TileFlags.TILE_LOCKED) _block.flag_locked_index = this.read16();
+      if(_block.flags & TileFlags.TILE_LOCKED) _block.flag_locked_index = this.read16();
 
       if(_block.flags & TileFlags.TILE_EXTRA) _block.tileExtraType = this.read8(); 
 
@@ -123,64 +125,78 @@ export class WorldParser {
 
         case TileExtra.Types.DOOR: {
           _block.tileExtraData = { label: this.readString() } as TileExtra.Door
-          this.read8();
-          break;
-        }
+          this.pos++;
+        } break;
 
         case TileExtra.Types.SIGN: {
           _block.tileExtraData = { label: this.readString() } as TileExtra.Sign
-          this.pos += 4;
-          break;
-        }
+          this.pos += 4;         
+        } break;
 
         case TileExtra.Types.LOCK: {
-            let lockSetFlag = this.read8(); // re applied?
-            let ownerUID = this.read32();
-            let accessedUIDs = this.readList();
+          let lockSetFlag = this.read8(); // re applied?
+          let ownerUID = this.read32();
+          let accessedUIDs = this.readList();
 
-            let joinWorldLevel = undefined;
+          let joinWorldLevel = undefined;
 
-            if(
-                ![
-                    ItemInfo.Items._SMALL_LOCK,
-                    ItemInfo.Items._BIG_LOCK,
-                    ItemInfo.Items._HUGE_LOCK,
-                    ItemInfo.Items._BUILDERS_LOCK
-                ].includes(_block.fgID)
-            ) {
-                joinWorldLevel = this.read8();
-                this.pos += 7;
-            }
+          if(
+              ![
+                  ItemInfo.Items._SMALL_LOCK,
+                  ItemInfo.Items._BIG_LOCK,
+                  ItemInfo.Items._HUGE_LOCK,
+                  ItemInfo.Items._BUILDERS_LOCK
+              ].includes(_block.fgID)
+          ) {
+              joinWorldLevel = this.read8();
+              this.pos += 7;
+          }
 
-            _block.tileExtraData = {
-                lockSetFlag: lockSetFlag,
-                ownerUID: ownerUID,
-                accessedCount: accessedUIDs.length,
-                accessedUIDs: accessedUIDs,
-                joinWorldLevel: joinWorldLevel
-            } as TileExtra.Lock
-            break;
-        }
+          _block.tileExtraData = {
+              lockSetFlag: lockSetFlag,
+              ownerUID: ownerUID,
+              accessedCount: accessedUIDs.length,
+              accessedUIDs: accessedUIDs,
+              joinWorldLevel: joinWorldLevel
+          } as TileExtra.Lock
+        } break;
 
         case TileExtra.Types.SEED: {
           _block.tileExtraData = { time: this.read32(), fruitCount: this.read8() } as TileExtra.Seed
-          break;
-        }
+        } break;
 
         case TileExtra.Types.DISPLAY_BLOCK: {
-          _block.tileExtraData = { itemID: this.read32() } as TileExtra.Display_Block
-        }
+          _block.tileExtraData = { itemID: this.read32() } as TileExtra.Display_Block;
+          this.data.TileExtraItems?.push((_block.tileExtraData as TileExtra.Display_Block).itemID!)
+        } break;
 
         case TileExtra.Types.VENDING_MACHINE: {
-            _block.tileExtraData = { itemID: this.read32(), price: this.read32() } as TileExtra.Vending_Machine;
-        }
+          _block.tileExtraData = { itemID: this.read32(), price: this.read32() } as TileExtra.Vending_Machine;
+        } break;
 
         case TileExtra.Types.DATA_BEDROCK: {
           this.pos += 21;
-        }
+        } break;
+
+        case TileExtra.Types.DISPLAY_SHELF: {
+          _block.tileExtraData = {
+            tr_itemID: this.read32(),
+            tl_itemID: this.read32(),
+            bl_itemID: this.read32(),
+            br_itemID: this.read32(),
+          } as TileExtra.Display_Shelf
+          this.data.TileExtraItems?.push(
+            (_block.tileExtraData as TileExtra.Display_Shelf).tl_itemID! || 0,
+            (_block.tileExtraData as TileExtra.Display_Shelf).tr_itemID! || 0,
+            (_block.tileExtraData as TileExtra.Display_Shelf).bl_itemID! || 0,
+            (_block.tileExtraData as TileExtra.Display_Shelf).br_itemID! || 0,
+          )
+        } break;
       }
       this.data.BlockInfo?.push(_block);
     }
+
+    writeFileSync("test.txt", JSON.stringify(this.data.BlockInfo, undefined, 2))
   }
 
   private parseDrops() {
@@ -211,12 +227,13 @@ export class WorldParser {
     this.data.worldInfo!.weatherBase = this.read16();
     this.pos += 2;
     this.data.worldInfo!.weatherCurrent = this.read16();
+    this.pos += 6;
   }
 
   public async parse() {
     this.parseInfoAndTile();
     this.parseDrops();
-    this.parseExtra()
+    this.parseExtra();
     
     return this.data;
   }

@@ -31,6 +31,13 @@ export namespace TileExtra {
         price?: number;
     }
 
+    export interface Display_Shelf {
+        tl_itemID?: number;
+        tr_itemID?: number;
+        bl_itemID?: number;
+        br_itemID?: number;
+    }
+
     export enum Types {
         NONE = 0,
         DOOR = 1,
@@ -43,6 +50,7 @@ export namespace TileExtra {
 
         DATA_BEDROCK = 42,
 
+        DISPLAY_SHELF = 43,
         VIP_ENTRANCE = 44
     }
 }

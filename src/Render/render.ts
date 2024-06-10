@@ -37,7 +37,7 @@ export class RenderWorld {
         const canvas = createCanvas(this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
         const ctx = canvas.getContext('2d');
 
-        ctx.drawImage(this.setUpRender?.weathers?.get(this.parsedWorld?.worldInfo?.weatherCurrent!), 0, 0, 1920, 1080, 0, 0, this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
+        ctx.drawImage(this.setUpRender?.weathers?.get(this.parsedWorld?.worldInfo?.weatherCurrent! ?? this.parsedWorld?.worldInfo?.weatherBase), 0, 0, 1920, 1080, 0, 0, this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
 
         /**
          * drawImage(Iamge, textureX, textureY, crop width, crop height, diplayX, displayY, display width, dislay height)
@@ -155,10 +155,28 @@ export class RenderWorld {
                     switch(x.tileExtraType) {
                         case TileExtra.Types.LOCK: {
                             offSetXFG += 2;
-                        }
+                        } break;
+
+                        case TileExtra.Types.DISPLAY_BLOCK: {
+                            if(!(x.tileExtraData) || 
+                            !(x.tileExtraData as TileExtra.Display_Block).itemID) return;
+
+                            const tMap = this.setUpRender?.TileExtraItems.get((x.tileExtraData as TileExtra.Display_Block).itemID!);
+                            if(!tMap) return;
+
+                            ctx.drawImage(
+                                tMap.image,
+                                tMap.x * 32,
+                                tMap.y * 32,
+                                32, 32,
+                                x.x! * 32,
+                                x.y! * 32,
+                                32, 32
+                            )
+                        } break;
                     }
                 }
-    
+
                 ctx.drawImage(
                     this.setUpRender?.fgTexture?.get(x.fgID!),
                     offSetXFG * 32,
@@ -168,6 +186,34 @@ export class RenderWorld {
                     x.y! * 32,
                     32, 32
                 )
+
+                if(x.tileExtraType! & TileFlags.TILE_EXTRA) {
+                    switch(x.tileExtraType) {
+                        case TileExtra.Types.DISPLAY_SHELF: {
+                            let x_offset = 0, y_offset = 0;
+        
+                            Object.entries((x.tileExtraData as TileExtra.Display_Shelf)).forEach(y => {
+                                if(y[0] == "tl_itemID") x_offset = 5, y_offset = 4;
+                                if(y[0] == "tr_itemID") x_offset = 18, y_offset = 4;
+                                if(y[0] == "bl_itemID") x_offset = 5, y_offset = 18;
+                                if(y[0] == "br_itemID") x_offset = 18, y_offset = 18;
+
+                                if(y[1] == 0) return;
+                                const tMap = this.setUpRender?.TileExtraItems.get(y[1])
+
+                                ctx.drawImage(
+                                    tMap!.image,
+                                    tMap!.x * 32,
+                                    tMap!.y * 32,
+                                    32, 32,
+                                    x.x! * 32 + x_offset,
+                                    x.y! * 32 + y_offset,
+                                    12, 12
+                                )
+                            })
+                        } break;
+                    }
+                }
             }
             
         })
