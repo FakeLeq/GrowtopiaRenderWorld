@@ -72,9 +72,15 @@ export class WorldParser {
 
     let lenght_ = this.read32();
 
-    for(let i = 0; i < lenght_; i++) {
+    if(lenght_ > 0) {
+      for(let i = 0; i < lenght_; i++) {
         arr.push(this.read32());
+      }
     }
+    else {
+      this.pos += 8;
+    }
+
     return arr;
   }
 
@@ -106,15 +112,14 @@ export class WorldParser {
     for(let i = 0; i < this.data.worldInfo.tileCount; i++) {
       let _block = {} as BlockInfo;
 
-      _block.x = i % this.data.worldInfo.width;
+      _block.x = i % (this.data.worldInfo.width);
       _block.y = Math.floor(i / this.data.worldInfo.width);
 
       _block.fgID = this.read16();
       _block.bgID = this.read16();
 
       _block.parent_block_index = this.read16();
-      _block.flags = this.read8();
-      this.pos++
+      _block.flags = this.read16();
 
       if(_block.flags & TileFlags.TILE_LOCKED) _block.flag_locked_index = this.read16();
 
@@ -174,6 +179,10 @@ export class WorldParser {
           _block.tileExtraData = { itemID: this.read32(), price: this.read32() } as TileExtra.Vending_Machine;
         } break;
 
+        case TileExtra.Types.WEATHER_MACHINE: {
+          this.pos += 4;
+        } break;
+
         case TileExtra.Types.DATA_BEDROCK: {
           this.pos += 21;
         } break;
@@ -192,6 +201,26 @@ export class WorldParser {
             (_block.tileExtraData as TileExtra.Display_Shelf).br_itemID! || 0,
           )
         } break;
+
+        case TileExtra.Types.VIP_DOOR: {
+          this.pos++;
+          _block.tileExtraData = {
+            ownerUID: this.read32(),
+            accessedUIDs: this.readList()
+          } as TileExtra.VIP_Door
+        } break;
+
+        case TileExtra.Types.ITEM_SUCKERS: {
+          _block.tileExtraData = {
+            itemID: this.read32(),
+            itemAmount: this.read32(),
+            flags: this.read16(),
+            capacity: this.read32() // ? check it
+          } as TileExtra.Item_Sucker
+          this.data.TileExtraItems?.push(
+            (_block.tileExtraData as TileExtra.Item_Sucker).itemID!
+          )
+        }
       }
       this.data.BlockInfo?.push(_block);
     }
@@ -234,7 +263,7 @@ export class WorldParser {
     this.parseInfoAndTile();
     this.parseDrops();
     this.parseExtra();
-    
+
     return this.data;
   }
 }

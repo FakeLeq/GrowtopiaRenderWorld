@@ -34,11 +34,11 @@ export class setUpRender {
         const drops = parsedWorld.DroppedItem!.reduce((data: any, { itemID: key }) => (data[key!] = (data[key!] || 0) + 1, data), {})
         const tileExtraItems = parsedWorld.TileExtraItems?.filter((val, i) => parsedWorld.TileExtraItems?.indexOf(val) == i);
 
-        this.loadWeathers();
+        //this.loadWeathers();
 
-        Object.entries(drops).forEach(async (x) => {
+        /*Object.entries(drops).forEach(async (x) => {
             this.dropTexture?.set(Number(x[0]), await loadImage("assets/sprites/" + this.LoadItems?.findWithID(Number(x[0])).item_texture?.replace(".rttex", ".png")))
-        })
+        })*/
         /* pickup box */ this.dropTexture?.set(-1, await loadImage("assets/sprites/pickup_box.png"));
         /* seeds */ this.dropTexture?.set(-2, await loadImage("assets/sprites/seed.png"));
 

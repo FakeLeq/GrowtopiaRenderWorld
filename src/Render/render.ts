@@ -37,7 +37,7 @@ export class RenderWorld {
         const canvas = createCanvas(this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
         const ctx = canvas.getContext('2d');
 
-        ctx.drawImage(this.setUpRender?.weathers?.get(this.parsedWorld?.worldInfo?.weatherCurrent! ?? this.parsedWorld?.worldInfo?.weatherBase), 0, 0, 1920, 1080, 0, 0, this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
+        //ctx.drawImage(this.setUpRender?.weathers?.get(this.parsedWorld?.worldInfo?.weatherCurrent! ?? this.parsedWorld?.worldInfo?.weatherBase), 0, 0, 1920, 1080, 0, 0, this.parsedWorld?.worldInfo?.width! * 32, this.parsedWorld?.worldInfo?.height! * 32);
 
         /**
          * drawImage(Iamge, textureX, textureY, crop width, crop height, diplayX, displayY, display width, dislay height)
@@ -151,7 +151,12 @@ export class RenderWorld {
                     }
                 }
 
-                if(x.tileExtraType! & TileFlags.TILE_EXTRA) {
+                if(x.flags! & TileFlags.TILE_OPEN) {
+                    offSetXFG += 1;
+                }
+
+                
+                if(x.flags! & TileFlags.TILE_EXTRA) {
                     switch(x.tileExtraType) {
                         case TileExtra.Types.LOCK: {
                             offSetXFG += 2;
@@ -174,6 +179,15 @@ export class RenderWorld {
                                 32, 32
                             )
                         } break;
+
+                        case TileExtra.Types.ITEM_SUCKERS: {
+                            if(!(x.tileExtraData) || 
+                            !(x.tileExtraData as TileExtra.Item_Sucker).itemID) return;
+
+                            const tMap = this.setUpRender?.TileExtraItems.get((x.tileExtraData as TileExtra.Item_Sucker).itemID!);
+                            if(!tMap) return;
+
+                        } break;
                     }
                 }
 
@@ -187,7 +201,7 @@ export class RenderWorld {
                     32, 32
                 )
 
-                if(x.tileExtraType! & TileFlags.TILE_EXTRA) {
+                if(x.flags! & TileFlags.TILE_EXTRA) {
                     switch(x.tileExtraType) {
                         case TileExtra.Types.DISPLAY_SHELF: {
                             let x_offset = 0, y_offset = 0;
@@ -218,10 +232,10 @@ export class RenderWorld {
             
         })
 
-        this.parsedWorld?.DroppedItem?.forEach(async (x) => {
+        /*this.parsedWorld?.DroppedItem?.forEach(async (x) => {
             const i_item = this.setUpRender?.LoadItems?.findWithID(x.itemID!);
 
-            if(i_item?.actionType != 19) {
+            if(i_item?.actionType != 19 || i_item.item_id != ItemInfo.Items._GEMS) {
                 let pickUpBoxX = 0;
 
                 switch(i_item?.spreadType) {
@@ -256,7 +270,7 @@ export class RenderWorld {
                 )
             }
             else {
-               
+               return;
             }
 
             if(x.itemCount! > 1) {
@@ -264,7 +278,7 @@ export class RenderWorld {
                 ctx.fillStyle = "white"
                 ctx.fillText(String(x.itemCount), (x.x! * 32) + 12, (x.y! * 32) + 20)
             }
-        })
+        })*/
 
         return canvas.toBuffer();
     }

@@ -38,6 +38,18 @@ export namespace TileExtra {
         br_itemID?: number;
     }
 
+    export interface VIP_Door {
+        ownerUID?: number;
+        accessedUIDs?: [];
+    }
+
+    export interface Item_Sucker {
+        itemID?: number;
+        itemAmount?: number; 
+        flags?: number;
+        capacity?: number;
+    }
+
     export enum Types {
         NONE = 0,
         DOOR = 1,
@@ -48,9 +60,12 @@ export namespace TileExtra {
         DISPLAY_BLOCK = 23,
         VENDING_MACHINE = 24,
 
-        DATA_BEDROCK = 42,
+        WEATHER_MACHINE = 40,
 
+        DATA_BEDROCK = 42,
         DISPLAY_SHELF = 43,
-        VIP_ENTRANCE = 44
+        VIP_DOOR = 44,
+
+        ITEM_SUCKERS = 62, //mag, gaia..
     }
 }
