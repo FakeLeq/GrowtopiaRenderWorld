@@ -1,4 +1,4 @@
-Render Growtopia's world
+Works with map data based on rgt
 
 ![img](https://raw.githubusercontent.com/FakeLeq/GrowtopiaRenderWorld/main/img/time.png)
 
